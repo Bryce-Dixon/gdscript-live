@@ -12,3 +12,4 @@ Using `GDScriptLive.profile(callback: Callable, ierations: int = 10_000)`, you c
 
 By default, `GDScriptLive.profile(callable)` will execute `callable` 10,000 times. This is done in batches of 1024 iterations per process frame to prevent the application from hanging indefinitely while profiling slower functions.
 
+If you need to clean up anything before the engine closes to avoid errors (eg: free constructed non-`RefCounted` `Object`s), you can connect the signal `GDScriptLive.profiling_done` to your cleanup function(s) which will run after all profiling is complete. Do *not* `await GDScriptLive.profiling_done` as that will cause your script to hang indefinitely (scripts are automatically killed after 30 seconds).
