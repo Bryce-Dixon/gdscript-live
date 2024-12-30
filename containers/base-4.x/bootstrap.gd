@@ -12,9 +12,8 @@ func get_options() -> Dictionary:
   return options
 
 const PROFILE_ITERATION_BATCH_COUNT := 1_024
+var all_profilers := []
 class Profiler:
-  static var all_profilers := []
-  static var bootstrap: SceneTree
   var callable: Callable
   var running := false
   var finished := false
@@ -66,8 +65,8 @@ class Profiler:
       max_usec = max(max_usec, average_iteration_usec)
       total_msec += batch_duration_usec * 0.001
       if index != 0:
-        await Profiler.bootstrap.process_frame
-        if not Profiler.all_profilers.has(self):
+        await Engine.get_main_loop().process_frame
+        if not Engine.get_main_loop().all_profilers.has(self):
           profile_cancelled.emit()
           return
       index += PROFILE_ITERATION_BATCH_COUNT
@@ -85,14 +84,13 @@ class Profiler:
   signal profile_complete(average_time: float, min_time: float, max_time: float)
   signal profile_cancelled()
 
-static func profile(callable: Callable, iterations:= 10_000):
+func profile(callable: Callable, iterations:= 10_000):
   var profiler := Profiler.new(callable)
   profiler.start(iterations)
-  Profiler.all_profilers.push_back(profiler)
+  Engine.get_main_loop().all_profilers.push_back(profiler)
 
 var initialized := false
 func _initialize():
-  Profiler.bootstrap = self
   var user_script := load("/mnt/user/script.gd") as GDScript
   if not user_script:
     push_error("Missing user script file!")
@@ -114,8 +112,8 @@ func _initialize():
   if user_return != null:
     print("Returned: ", user_return)
   var profile_results := []
-  if !Profiler.all_profilers.is_empty():
-    for profiler: Profiler in Profiler.all_profilers:
+  if !all_profilers.is_empty():
+    for profiler: Profiler in all_profilers:
       if profiler.running:
         await profiler.profile_done
       if profiler.finished:
@@ -131,6 +129,7 @@ func _initialize():
           "callable": profiler.callable.get_method(),
           "failed": true
         })
+  profiling_done.emit()
   var profile_results_file := FileAccess.open("/mnt/user/profiler", FileAccess.WRITE)
   if not profile_results_file:
     push_error("Failed to open profile results file for write")
@@ -142,4 +141,6 @@ func _initialize():
 func _process(_delta):
   if not initialized:
     quit(4)
+
+signal profiling_done
 
