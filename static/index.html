@@ -6,11 +6,11 @@
     </style>
     <link rel="stylesheet" href="/static/main.css" />
     <link rel="stylesheet" href="/static/colors.css" />
+    <link rel="stylesheet" data-name="vs/editor/editor.main" href="_static/js/ext/monaco-editor/min/vs/editor/editor.main.css" />
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"
         integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
         crossorigin="anonymous"></script>
     <script src="http://requirejs.org/docs/release/2.1.5/comments/require.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.0/min/vs/loader.min.js"></script> 
 </head>
 <body>
     <div class="header">
@@ -69,6 +69,12 @@
         </div>
     </div>
 
+    <script>
+        var require = { paths: { "vs": "_static/js/ext/monaco-editor/min/vs"} };
+    </script>
+    <script src="_static/js/ext/monaco-editor/min/vs/loader.js"></script>
+    <script src="_static/js/ext/monaco-editor/min/vs/editor/editor.main.nls.js"></script>
+    <script src="_static/js/ext/monaco-editor/min/vs/editor/editor.main.js"></script>
     <script src="/static/query.js"></script>
     <script src="/static/editor_setup.js"></script>
     <script src="/static/split_view.js"></script>
