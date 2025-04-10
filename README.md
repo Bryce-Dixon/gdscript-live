@@ -6,7 +6,7 @@ Use online now: https://gdscript.live
 
 ## Profiling
 
-*Note:* Profiling is only supported for Godot 4 builds. attempting to call `GDScriptLife.profile(...)` for Godot 3 builds will result in an error message.
+*Note:* Profiling is only supported for Godot 4 builds. attempting to call `GDScriptLive.profile(...)` for Godot 3 builds will result in an error message.
 
 Using `GDScriptLive.profile(callback: Callable, ierations: int = 10_000)`, you can test the performance of various `Callable`s. This includes lambdas and asynchronous coroutines.
 
