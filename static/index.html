@@ -74,28 +74,51 @@
     <script src="/static/monaco-editor-0.52.2/package/min/vs/loader.js"></script>
     <script src="/static/monaco-editor-0.52.2/package/min/vs/editor/editor.main.js"></script>
     <script src="/static/query.js"></script>
-    <script src="/static/editor_setup.js"></script>
     <script src="/static/split_view.js"></script>
     <script src="/static/version_list.js"></script>
     <script src="/static/profiler.js"></script>
     <script>
         async function runScript() {
-            $("#stdout, #stderr").html("Running script...");
+            $("#stdout, #stderr").val("Running script...");
+            $("input#run-button").prop("disabled", true);
             try
             {
                 const select = document.getElementById("godot-version");
+                for (var attempt = 0; select.value == ""; ++attempt)
+                {
+                    if (attempt > 10)
+                    {
+                        throw new Error("Godot version list took too long to load");
+                    }
+                    console.log("Waiting for godot-version list to load...");
+                    await new Promise(resolve => setTimeout(resolve, 100)); 
+                }
+                console.log(`Godot version:${select.value}`);
                 var api_page = `/api/run?script=${btoa(editor.getValue())}&godot_version=${select.value}`;
                 if ($("#no-cache-checkbox").is(":checked"))
                 {
                     api_page += "&no_cache";
                 }
+                console.log("Waiting for server response...");
                 const response = await fetch(api_page);
                 if (!response.ok)
                 {
-                    throw new Error(`Response status: ${response.status}`);
+                    const error_message = await (async _ => {
+                        try
+                        {
+                            const json = await response.json();
+                            return json["error"];
+                        }
+                        catch (error)
+                        {
+                            return "Unknown error";
+                        }
+                    })();
+                    throw new Error(`Response status: ${response.status}; ${error_message}`);
                 }
                 const json = await response.json();
-                $("#stdout").html(json["stdout"]);
+                console.log("Response OK!");
+                $("#stdout").val(json["stdout"]);
                 if (json["stderr"].length == 0)
                 {
                     $("div.stderr").hide();
@@ -103,7 +126,7 @@
                 else
                 {
                     $("div.stderr").show();
-                    $("#stderr").html(json["stderr"]);
+                    $("#stderr").val(json["stderr"]);
                 }
                 if (json["profile_results"].length == 0)
                 {
@@ -118,7 +141,11 @@
             catch (error)
             {
                 console.error(error);
+                $("div.stderr").show();
+                $("#stdout").val("");
+                $("#stderr").val(`Error running script: ${error}`);
             }
+            $("input#run-button").prop("disabled", false);
         }
 
         function shareScript() {
@@ -131,6 +158,7 @@
             navigator.clipboard.writeText(location.origin + url);
         }
     </script>
+    <script src="/static/editor_setup.js"></script>
 </body>
 </html>
 
